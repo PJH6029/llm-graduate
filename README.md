@@ -6,18 +6,19 @@
 # rag.api.py
 _config = {
     "global": {
-        "context-hierarchy": True, # used in selecting retriever and generation prompts
+        "context-hierarchy": False, # used in selecting retriever and generation prompts
+        "target-filtering": True,
     },
     "ingestion": { # optional
         "ingestor": "pinecone-multivector",
-        "embeddings": "text-embedding-3-small",
-        "namespace": "parent-upstage-overlap-backup",
-        "sub-namespace": "child-upstage-overlap-backup",
+        "embeddings": "solar-embedding-1-large",
+        "namespace": "parent",
+        "sub-namespace": "child",
     },
     "transformation": { # optional
         "model": "gpt-4o-mini",
         "enable": {
-            "translation": True,
+            "translation": False,
             "rewriting": True,
             "expansion": False,
             "hyde": True,
@@ -28,11 +29,12 @@ _config = {
         "retriever": ["pinecone-multivector"],
         # "retriever": ["kendra"],
         # "weights": [0.5, 0.5],
-        "namespace": "parent-upstage-overlap-backup",
-        "sub-namespace": "child-upstage-overlap-backup",
         
-        "embeddings": "text-embedding-3-small", # may be optional
-        "top_k": 3, # for multi-vector retriever, context size is usually big. Use small top_k
+        "namespace": "parent",
+        "sub-namespace": "child",
+        
+        "embeddings": "solar-embedding-1-large", # may be optional
+        "top_k": 5, # for multi-vector retriever, context size is usually big. Use small top_k
         "post_retrieval": {
             "rerank": True,
             # TODO
@@ -43,7 +45,7 @@ _config = {
     },
     "fact_verification": { # optional
         "model": "gpt-4o-mini",
-        "enable": False
-    }
+        "enable": False,
+    },
 }
 ```
