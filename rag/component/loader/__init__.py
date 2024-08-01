@@ -1,8 +1,10 @@
-from rag.component.loader.PDFWithMetadataLoader import PDFWithMetadataLoader
+from rag.component.loader.PDFWithMetadataLoaderS3 import PDFWithMetadataLoaderS3
+from rag.component.loader.PDFWithMetadataLoaderLocal import PDFWithMetadataLoaderLocal
 from rag.component.loader.UpstageLayoutLoader import UpstageLayoutLoader
 from rag.component.loader.loader import *
 
 __all__ = [
-    "PDFWithMetadataLoader",
+    "PDFWithMetadataLoaderS3",
     "UpstageLayoutLoader",
+    "PDFWithMetadataLoaderLocal"
 ]

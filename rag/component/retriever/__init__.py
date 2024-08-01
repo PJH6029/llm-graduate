@@ -4,6 +4,7 @@ from rag.component.retriever.KnowledgeBaseRetriever import KnowledgeBaseOpenSear
 from rag.component.retriever.EnsembleRetriever import EnsembleRetriever
 from rag.component.retriever.HierarchicalRetriever import HierarchicalRetriever
 from rag.component.retriever.PineconeMulitVectorRetriever import PineconeMultiVectorRetriever
+from rag.component.retriever.TargetFilterRetriever import TargetFilterRetriever
 
 __all__ = [
     "BaseRAGRetriever",
@@ -14,4 +15,5 @@ __all__ = [
     "EnsembleRetriever",
     "HierarchicalRetriever",
     "PineconeMultiVectorRetriever",
+    "TargetFilterRetriever"
 ]

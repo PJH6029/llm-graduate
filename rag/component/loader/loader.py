@@ -2,11 +2,11 @@ from typing import Iterable, Optional
 import os
 
 from rag.type import *
-from rag.component.loader import PDFWithMetadataLoader, UpstageLayoutLoader
+from rag.component.loader import PDFWithMetadataLoaderS3, UpstageLayoutLoader, PDFWithMetadataLoaderLocal
 from rag import util
 
 def lazy_load_from_s3(s3_url: str) -> Iterable[Chunk]:
-    chunks_iter = PDFWithMetadataLoader(
+    chunks_iter = PDFWithMetadataLoaderS3(
         s3_url,
         loader=UpstageLayoutLoader,
         loader_kwargs={
@@ -64,3 +64,17 @@ def _chunk_from_backup_page(page_file_path: str, object_location: Optional[str]=
     )
     
     return util.doc_to_chunk(document)
+
+def lazy_load_from_local(file_path: str) -> Iterable[Chunk]:
+    chunks_iter = PDFWithMetadataLoaderLocal(
+        file_path,
+        loader=UpstageLayoutLoader,
+        loader_kwargs={
+            "use_ocr": True,
+            "to_markdown": True,
+            "overlap_elem_size": 2,
+            "cache_to_local": True,
+            "backup_dir": "./layout_backup", # TODO configurable
+        }
+    ).lazy_load_as_chunk()
+    return chunks_iter

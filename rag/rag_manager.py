@@ -37,7 +37,7 @@ class RAGManager:
             manager.set_config(util.merge_configs(config.get(section, {}), self.global_config))
         msg.good("RAGManager successfully configured")
         
-    def transform_query(self, query: str, history: list[ChatLog]) -> list[str]:
+    def transform_query(self, query: str, history: list[ChatLog]) -> dict[str, str | list[str]]:
         msg.info(f"Transforming query starting with: '{query}' and {len(history)} history...")
         start = time.time()
         
@@ -47,7 +47,7 @@ class RAGManager:
         msg.good(f"Query transformed in {end-start:.2f}s, resulting in {len(queries)} queries")
         return queries
 
-    def retrieve(self, queries: list[str]) -> list[Chunk]:
+    def retrieve(self, queries: dict[str, str | list[str]]) -> list[Chunk]:
         msg.info(f"Retrieving with: {len(queries)} queries...")
         msg.info(f"Queries: {queries}")
         start = time.time()
@@ -81,7 +81,9 @@ class RAGManager:
         
         context = util.format_chunks(chunks or [], self.global_config.get("context-hierarchy", False))
         history_str = util.format_history(history or [])
-                        
+        
+        print(context)
+        
         generation_response = ""
         for r in self.generator_manager.generate_stream(query, history_str, context):
             yield r
@@ -141,6 +143,24 @@ class RAGManager:
         start = time.time()
         
         chunks_iter = loader.lazy_load_from_backup(backup_dir, object_location)
+        
+        chunks_cnt = util.execute_as_batch(
+            chunks_iter,
+            batch_size=batch_size,
+            func=self.ingestor_manager.ingest
+        )
+        
+        end = time.time()
+        msg.good(f"{chunks_cnt} chunks ingested in {end-start:.2f}s")
+        return chunks_cnt
+    
+    def ingest_from_local(
+        self, file_path: str, batch_size: int = 20
+    ) -> int:
+        msg.info(f"Ingesting data from {file_path}")
+        start = time.time()
+        
+        chunks_iter = loader.lazy_load_from_local(file_path)
         
         chunks_cnt = util.execute_as_batch(
             chunks_iter,

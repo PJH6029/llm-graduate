@@ -74,7 +74,7 @@ def _format_combined_chunks(combined_chunks: list[CombinedChunks]) -> str:
         if combined_chunk.doc_meta.get("base_doc_id"):
             result += f"Based on: {combined_chunk.doc_meta.get('base_doc_id')}\n"
         result += f"Average Score: {combined_chunk.doc_mean_score}\n"
-        result += f"META:\n {combined_chunk.doc_meta}\n\n"
+        result += f"DOC META:\n {combined_chunk.doc_meta}\n\n"
         for chunk in combined_chunk.chunks:
             result += f"{chunk.detail(doc_meta=False)}\n\n"
     return result
@@ -325,3 +325,12 @@ class MetadataSearch:
             return source
         
         return MetadataSearch.search_doc_id(metadata)
+    
+def flatten_queries(queries: dict[str, str | list[str]]) -> list[str]:
+    result = []
+    for k in queries:
+        if isinstance(queries[k], list):
+            result.extend(queries[k])
+        else:
+            result.append(queries[k])
+    return result

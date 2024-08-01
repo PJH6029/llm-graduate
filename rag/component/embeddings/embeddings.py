@@ -13,6 +13,9 @@ model_providers = {
     "bedrock": [
         "amazon.titan-embed-text-v1",
         "amazon.titan-text-express-v1",
+    ],
+    "upstage": [
+        "solar-embedding-1-large",
     ]
 }
 
@@ -35,6 +38,9 @@ def get_model(model_name: str, **kwargs) -> Optional[Embeddings]:
         elif provider == "bedrock":
             from langchain_community.embeddings import BedrockEmbeddings
             return BedrockEmbeddings(model_id=model_name, region_name=os.environ["AWS_REGION"], **kwargs)
+        elif provider == "upstage":
+            from langchain_upstage import UpstageEmbeddings
+            return UpstageEmbeddings(model=model_name, **kwargs)
         else:
             msg.fail(f"Provider {provider} not supported.")
             return None

@@ -3,7 +3,7 @@ from typing import Type, Callable
 
 from rag.component.retriever.base import BaseRAGRetriever, FilterUtil
 from rag.type import *
-
+from rag import util
 
 class HierarchicalRetriever(BaseRAGRetriever):
     """Wrapper class that uses a retriever hierarchically.
@@ -27,7 +27,7 @@ class HierarchicalRetriever(BaseRAGRetriever):
         self.retriever = retriever
         self.top_k = self.retriever.top_k
         
-    def retrieve(self, queries: list[str], filter: Filter | None = None) -> list[Chunk]:
+    def retrieve(self, queries: dict[str, str | list[str]], filter: Filter | None = None) -> list[Chunk]:
         # base context retrieval
         base_chunks = self.retriever.retrieve(
             queries, filter=FilterUtil.from_dict({"equals": {"key": "category", "value": "base"}})

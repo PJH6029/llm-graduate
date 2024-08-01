@@ -6,7 +6,7 @@ from langchain_core.documents import Document
 
 from rag.component.retriever.base import BaseRAGRetriever
 from rag.type import *
-from rag.util import generate_id
+from rag import util
 
 class RetrievalConfig:
     def __init__(self, config: dict):
@@ -42,7 +42,9 @@ class KnowledgeBaseRetriever(BaseRAGRetriever):
         
         
     
-    def retrieve(self, queries: list[str], filter: Filter | None = None) -> list[Chunk]:
+    def retrieve(self, queries: dict[str, str | list[str]], filter: Filter | None = None) -> list[Chunk]:
+        queries = util.flatten_queries(queries)
+        
         if filter is not None:
             filter_dict = self._arange_filter(filter)
             self.retriever.retrieval_config = RetrievalConfig({
@@ -90,7 +92,7 @@ class KnowledgeBaseRetriever(BaseRAGRetriever):
         if chunk_raw.metadata["source_metadata"].get("x-amz-bedrock-kb-chunk-id"):
             return chunk_raw.metadata["source_metadata"]["x-amz-bedrock-kb-chunk-id"]
         else:
-            return generate_id(chunk_raw.page_content)
+            return util.generate_id(chunk_raw.page_content)
     
     def process_chunk(self, chunk_raw: Document) -> Chunk:
         doc_meta, chunk_meta = self._process_metadata(chunk_raw)

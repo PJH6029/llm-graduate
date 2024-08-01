@@ -20,18 +20,19 @@ def init(config: dict=None):
     rag_manager = RAGManager()
     _config = {
         "global": {
-            "context-hierarchy": True, # used in selecting retriever and generation prompts
+            "context-hierarchy": False, # used in selecting retriever and generation prompts
+            "target-filtering": True,
         },
         "ingestion": { # optional
             "ingestor": "pinecone-multivector",
-            "embeddings": "text-embedding-3-small",
-            "namespace": "parent-upstage-overlap-backup",
-            "sub-namespace": "child-upstage-overlap-backup",
+            "embeddings": "solar-embedding-1-large",
+            "namespace": "parent",
+            "sub-namespace": "child",
         },
         "transformation": { # optional
             "model": "gpt-4o-mini",
             "enable": {
-                "translation": True,
+                "translation": False,
                 "rewriting": True,
                 "expansion": False,
                 "hyde": True,
@@ -43,13 +44,11 @@ def init(config: dict=None):
             # "retriever": ["kendra"],
             # "weights": [0.5, 0.5],
             
-            "namespace": "parent-upstage-overlap-backup",
-            "sub-namespace": "child-upstage-overlap-backup",
-            # "namespace": "parent-upstage-backup",
-            # "sub-namespace": "child-upstage-backup",
+            "namespace": "parent",
+            "sub-namespace": "child",
             
-            "embeddings": "text-embedding-3-small", # may be optional
-            "top_k": 6, # for multi-vector retriever, context size is usually big. Use small top_k
+            "embeddings": "solar-embedding-1-large", # may be optional
+            "top_k": 5, # for multi-vector retriever, context size is usually big. Use small top_k
             "post_retrieval": {
                 "rerank": True,
                 # TODO
@@ -73,7 +72,7 @@ def query(query: str, history: list[ChatLog]=None) -> GenerationResult:
     history = history or []
     with get_openai_callback() as cb:
         queries = rag_manager.transform_query(query, history)
-        translated_query = queries[0] # first query is the translated query
+        translated_query = queries["translation"] # first query is the translated query
         chunks = rag_manager.retrieve(queries)
         
         global recent_chunks, recent_translated_query
@@ -93,7 +92,7 @@ def query_stream(query: str, history: list[ChatLog]=None) -> Generator[Generatio
         queries = rag_manager.transform_query(query, history)
         yield {"transformation": queries}
         
-        translated_query = queries[0] # first query is the translated query
+        translated_query = queries["translation"] # first query is the translated query
         chunks = rag_manager.retrieve(queries)
         yield {"retrieval": chunks}
         
@@ -117,6 +116,9 @@ def upload_data(file_path: str, object_location: str) -> bool:
 
 def ingest_data(s3_url: str) -> int:
     return rag_manager.ingest(s3_url)
+
+def ingest_data_from_local(file_path: str) -> int:
+    return rag_manager.ingest_from_local(file_path)
 
 async def aingest_data(s3_url: str) -> int:
     return await rag_manager.aingest(s3_url)

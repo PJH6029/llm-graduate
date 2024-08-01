@@ -93,9 +93,12 @@ class RetrieverManager(BasePipelineManager):
         try:
             ensemble_lambda = self._ensemble_lambda()
             
-            msg.info(f"Use Hierarchical Retriever: {self.use_context_hierarchy}")
             if self.use_context_hierarchy:
+                msg.info("Using Hierarchical Retriever")
                 retriever = HierarchicalRetriever.from_retriever(ensemble_lambda(config))
+            elif config.get("target-filtering", False):
+                msg.info("Using TargetFilter Retriever")
+                retriever = TargetFilterRetriever.from_retriever(ensemble_lambda(config))
             else:
                 retriever = ensemble_lambda(config)
         except KeyError as e:
@@ -110,7 +113,7 @@ class RetrieverManager(BasePipelineManager):
             self.selected_retriever = retriever
         
         
-    def retrieve(self, queries: list[str], filter: dict | None=None) -> list[Chunk]:
+    def retrieve(self, queries: dict[str, str | list[str]], filter: dict | None=None) -> list[Chunk]:
         """Retrieve chunks from selected retriever
 
         Args:

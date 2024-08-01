@@ -6,7 +6,7 @@ from collections import defaultdict
 
 from rag.component.retriever.base import BaseRAGRetriever
 from rag.type import *
-from rag.util import generate_id
+from rag import util
 
 T = TypeVar("T")
 H = TypeVar("H", bound=Hashable)
@@ -32,7 +32,7 @@ class EnsembleRetriever(BaseRAGRetriever):
         self.c = 60
         self.top_k = top_k
     
-    def retrieve(self, queries: list[str], filter: Filter | None = None) -> list[Chunk]:
+    def retrieve(self, queries: dict[str, str | list[str]], filter: Filter | None = None) -> list[Chunk]:
         retrieved_chunks_list = [
             retriever.retrieve(queries, filter) for retriever in self.retrievers
         ]

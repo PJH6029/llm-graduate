@@ -77,8 +77,9 @@ class PineconeMultiVectorRetriever(BaseRAGRetriever):
         chain = runnable_input_parser | runnable_parallel | runnable_output_parser
         return chain
     
-    def retrieve(self, queries: list[str], filter: Filter | None = None) -> list[Chunk]:  
+    def retrieve(self, queries: dict[str, str | list[str]], filter: Filter | None = None) -> list[Chunk]:  
         try:
+            queries = util.flatten_queries(queries)
             if filter is not None:
                 filter_dict = self._arange_filter(filter)
             else:
@@ -117,10 +118,17 @@ class PineconeMultiVectorRetriever(BaseRAGRetriever):
             # TODO better normalization?
             for key in id_scores:
                 id_scores[key] = sum(id_scores[key])
-            min_score = min(id_scores.values())
-            max_score = max(id_scores.values())
-            for key in id_scores:
-                id_scores[key] = (id_scores[key] - min_score) / (max_score - min_score)
+            
+            if len(id_scores) == 1:
+                # avoid division by zero
+                for key in id_scores:
+                    id_scores[key] = 1
+            else:
+                min_score = min(id_scores.values())
+                max_score = max(id_scores.values())
+                
+                for key in id_scores:
+                    id_scores[key] = (id_scores[key] - min_score) / (max_score - min_score)
             
             # assign scores
             for retrieved_chunk_raw in retrieved_chunks_raw:
@@ -157,8 +165,7 @@ class PineconeMultiVectorRetriever(BaseRAGRetriever):
         
         # TODO seperator
         key_map = {
-            "base_doc_id": "doc_meta___Attributes___base-doc-id",
-            "category": "doc_meta___Attributes____category",
+            "target": "doc_meta___target",
         }
         
         if isinstance(filter, FilterPredicate):
@@ -184,12 +191,13 @@ class PineconeMultiVectorRetriever(BaseRAGRetriever):
             chunk_id=util.MetadataSearch.search_chunk_id(metadata),
             doc_id=util.MetadataSearch.search_doc_id(metadata),
             doc_meta=util.remove_falsy({
+                "doc_id": util.MetadataSearch.search_doc_id(metadata),
                 "doc_name": doc_name,
                 "category": doc_meta.get("Attributes", {}).get("_category"),
                 "base_doc_id": doc_meta.get("Attributes", {}).get("base-doc-id"),
                 "version": doc_meta.get("Attributes", {}).get("version"),
             }),
-            chunk_meta={**chunk_meta, "score": metadata.get("score")},
+            chunk_meta={**chunk_meta, "score": metadata.get("score"), "chunk_id": util.MetadataSearch.search_chunk_id(metadata)},
             score=metadata.get("score"),
         )
         

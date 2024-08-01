@@ -27,8 +27,21 @@ def write_chunks(chunks: list[Chunk]):
         st.markdown(f"- chunk {i+1}:")
         st.markdown(f"```\n{chunk.text[:70]}...\n```")
 
+def _write_source_docs_without_hierarchy(chunks: list[Chunk]):
+    combined_chunks = combine_chunks(chunks, attach_url=False)
+    
+    st.divider()
+    st.markdown(f"# Total {len(chunks)} Chunks")
+    write_combined_chunks(combined_chunks)
+
 # TODO route to different writer based on the config(context-hierarchy)
 def write_source_docs(chunks: list[Chunk]):
+    if not all([chunk.doc_meta.get("category") for chunk in chunks]):
+        msg.warn("Some chunks do not have category information. Ignore hierarchy.")
+        _write_source_docs_without_hierarchy(chunks)
+        return
+
+    
     combined_chunks = combine_chunks(chunks, attach_url=True)
     
     combined_base_chunks = [chunk for chunk in combined_chunks if chunk.doc_meta.get("category") == "base"]
